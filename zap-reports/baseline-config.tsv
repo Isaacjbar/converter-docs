@@ -1,0 +1,4 @@
+10109	INFO	Modern Web Application - informational for SPAs
+10015	INFO	Re-examine Cache-control Directives - no-store is intentional
+10049	INFO	Content Cacheability - no-store on static assets is intentional
+10055	INFO	CSP style-src unsafe-inline - required by React dynamic class-based styling with Tailwind

@@ -1,0 +1,215 @@
+openapi: 3.0.3
+info:
+  title: Service Converter API
+  description: Java-to-UML conversion service
+  version: 1.0.0
+servers:
+  - url: https://api.converter.levsek.com.mx
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        username: { type: string }
+        password: { type: string }
+      required: [email, username, password]
+    LoginRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+      required: [email, password]
+    RefreshRequest:
+      type: object
+      properties:
+        refresh: { type: string }
+      required: [refresh]
+    UserPatch:
+      type: object
+      properties:
+        role: { type: string, enum: [admin, analyst] }
+        is_active: { type: boolean }
+
+paths:
+  /auth/register/:
+    post:
+      summary: Register new user
+      operationId: authRegister
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201': { description: User created }
+        '400': { description: Validation error }
+
+  /auth/login/:
+    post:
+      summary: Login and get JWT tokens
+      operationId: authLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200': { description: JWT tokens }
+        '401': { description: Invalid credentials }
+
+  /auth/refresh/:
+    post:
+      summary: Refresh access token
+      operationId: authRefresh
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200': { description: New access token }
+        '401': { description: Invalid refresh token }
+
+  /auth/me/:
+    get:
+      summary: Get current user profile
+      operationId: authMe
+      security:
+        - BearerAuth: []
+      responses:
+        '200': { description: User profile }
+        '401': { description: Unauthorized }
+
+  /auth/users/:
+    get:
+      summary: List all users (admin only)
+      operationId: authUsersList
+      security:
+        - BearerAuth: []
+      responses:
+        '200': { description: User list }
+        '403': { description: Forbidden }
+
+  /auth/users/{id}/:
+    get:
+      summary: Get user by ID (admin only)
+      operationId: authUsersGet
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: User }
+        '404': { description: Not found }
+    patch:
+      summary: Update user (admin only)
+      operationId: authUsersPatch
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPatch'
+      responses:
+        '200': { description: Updated }
+        '403': { description: Forbidden }
+    delete:
+      summary: Delete user (admin only)
+      operationId: authUsersDelete
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: Deleted }
+        '403': { description: Forbidden }
+
+  /convert/:
+    post:
+      summary: Convert Java code to UML diagrams
+      operationId: convert
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                code:
+                  type: string
+      responses:
+        '200': { description: UML diagrams }
+        '400': { description: Invalid input }
+
+  /examples/:
+    get:
+      summary: Get example diagrams
+      operationId: examples
+      responses:
+        '200': { description: Example diagrams }
+
+  /history/:
+    get:
+      summary: List conversion history
+      operationId: historyList
+      security:
+        - BearerAuth: []
+      responses:
+        '200': { description: History list }
+        '401': { description: Unauthorized }
+
+  /history/{id}/:
+    get:
+      summary: Get history entry
+      operationId: historyGet
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: History entry }
+        '404': { description: Not found }
+    delete:
+      summary: Delete history entry
+      operationId: historyDelete
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: Deleted }
+        '404': { description: Not found }
