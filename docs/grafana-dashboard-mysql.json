@@ -1,0 +1,164 @@
+{
+  "title": "MySQL — service-converter Monitoring",
+  "uid": "mysql-converter-monitor",
+  "tags": ["mysql", "converter"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "1. MySQL UP",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 3, "h": 4 },
+      "options": {
+        "colorMode": "background",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "value": 0, "color": "red" }, { "value": 1, "color": "green" }] }
+        }
+      },
+      "targets": [{ "expr": "mysql_up", "legendFormat": "MySQL", "datasource": "prometheus" }]
+    },
+    {
+      "id": 2,
+      "title": "2. Queries por segundo",
+      "type": "timeseries",
+      "gridPos": { "x": 3, "y": 0, "w": 9, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "ops", "color": { "mode": "palette-classic" } } },
+      "targets": [{ "expr": "rate(mysql_global_status_queries[1m])", "legendFormat": "queries/s", "datasource": "prometheus" }]
+    },
+    {
+      "id": 4,
+      "title": "4. Slow Queries",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 3, "h": 4 },
+      "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "value": 0, "color": "green" }, { "value": 10, "color": "yellow" }, { "value": 50, "color": "red" }] }
+        }
+      },
+      "targets": [{ "expr": "mysql_global_status_slow_queries", "legendFormat": "slow queries", "datasource": "prometheus" }]
+    },
+    {
+      "id": 5,
+      "title": "5. Threads Conectados",
+      "type": "gauge",
+      "gridPos": { "x": 15, "y": 0, "w": 3, "h": 4 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [{ "value": 0, "color": "green" }, { "value": 50, "color": "yellow" }, { "value": 80, "color": "red" }] }
+        }
+      },
+      "targets": [{ "expr": "mysql_global_status_threads_connected", "legendFormat": "threads", "datasource": "prometheus" }]
+    },
+    {
+      "id": 6,
+      "title": "6. Conexiones Abortadas",
+      "type": "stat",
+      "gridPos": { "x": 18, "y": 0, "w": 3, "h": 4 },
+      "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "value": 0, "color": "green" }, { "value": 5, "color": "yellow" }, { "value": 20, "color": "red" }] }
+        }
+      },
+      "targets": [{ "expr": "mysql_global_status_aborted_connects", "legendFormat": "aborted", "datasource": "prometheus" }]
+    },
+    {
+      "id": 7,
+      "title": "7. Conexiones Totales",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 8, "h": 6 },
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "palette-classic" } } },
+      "targets": [{ "expr": "mysql_global_status_connections", "legendFormat": "connections", "datasource": "prometheus" }]
+    },
+    {
+      "id": 8,
+      "title": "8. InnoDB Buffer Pool Hit Rate (%)",
+      "type": "gauge",
+      "gridPos": { "x": 8, "y": 4, "w": 5, "h": 6 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [{ "value": 0, "color": "red" }, { "value": 80, "color": "yellow" }, { "value": 95, "color": "green" }] }
+        }
+      },
+      "targets": [{
+        "expr": "(1 - (rate(mysql_global_status_innodb_buffer_pool_reads[5m]) / rate(mysql_global_status_innodb_buffer_pool_read_requests[5m]))) * 100",
+        "legendFormat": "hit rate %", "datasource": "prometheus"
+      }]
+    },
+    {
+      "id": 9,
+      "title": "9. InnoDB Páginas Escritas",
+      "type": "timeseries",
+      "gridPos": { "x": 13, "y": 4, "w": 8, "h": 6 },
+      "fieldConfig": { "defaults": { "unit": "pps", "color": { "mode": "palette-classic" } } },
+      "targets": [{ "expr": "rate(mysql_global_status_innodb_pages_written[5m])", "legendFormat": "pages/s", "datasource": "prometheus" }]
+    },
+    {
+      "id": 10,
+      "title": "10. Full Table Scans (%)",
+      "type": "gauge",
+      "gridPos": { "x": 0, "y": 10, "w": 5, "h": 6 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [{ "value": 0, "color": "green" }, { "value": 20, "color": "yellow" }, { "value": 50, "color": "red" }] }
+        }
+      },
+      "targets": [{
+        "expr": "(rate(mysql_global_status_select_scan[5m]) / rate(mysql_global_status_questions[5m])) * 100",
+        "legendFormat": "full scans %", "datasource": "prometheus"
+      }]
+    },
+    {
+      "id": 11,
+      "title": "11. Errores de Conexión",
+      "type": "stat",
+      "gridPos": { "x": 5, "y": 10, "w": 4, "h": 6 },
+      "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "value": 0, "color": "green" }, { "value": 1, "color": "red" }] }
+        }
+      },
+      "targets": [{ "expr": "mysql_global_status_connection_errors_total", "legendFormat": "errors", "datasource": "prometheus" }]
+    },
+    {
+      "id": 13,
+      "title": "13. Deadlocks InnoDB",
+      "type": "stat",
+      "gridPos": { "x": 9, "y": 10, "w": 4, "h": 6 },
+      "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "value": 0, "color": "green" }, { "value": 1, "color": "red" }] }
+        }
+      },
+      "targets": [{ "expr": "mysql_global_status_innodb_deadlocks", "legendFormat": "deadlocks", "datasource": "prometheus" }]
+    },
+    {
+      "id": 30,
+      "title": "3 y 12 — Consultas SQL directas (ejecutar en Compass o terminal)",
+      "type": "text",
+      "gridPos": { "x": 13, "y": 10, "w": 11, "h": 6 },
+      "options": {
+        "mode": "markdown",
+        "content": "**#3 Tiempo promedio de respuesta:**\n```sql\nSELECT\n  ROUND(SUM(SUM_TIMER_WAIT) / SUM(COUNT_STAR) / 1000000000000, 6) AS avg_response_time_sec\nFROM performance_schema.events_statements_summary_by_digest\nWHERE COUNT_STAR > 0;\n```\n\n**#12 Fragmentación de tablas:**\n```sql\nSELECT TABLE_SCHEMA, TABLE_NAME, DATA_FREE\nFROM information_schema.tables\nWHERE DATA_FREE > 0\nORDER BY DATA_FREE DESC;\n```"
+      }
+    }
+  ]
+}
